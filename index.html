@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Raupo Irrigation Lookup</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath d='M34 6c6 0 11 4 12 10-5 0-9-2-12-6-2 3-5 5-9 5 1-5 4-9 9-9z' fill='%231d6b38'/%3E%3Ccircle cx='24' cy='24' r='7' fill='%235b1838'/%3E%3Ccircle cx='38' cy='24' r='7' fill='%235b1838'/%3E%3Ccircle cx='18' cy='35' r='7' fill='%236f1e44'/%3E%3Ccircle cx='31' cy='35' r='7' fill='%235b1838'/%3E%3Ccircle cx='44' cy='35' r='7' fill='%236f1e44'/%3E%3Ccircle cx='24' cy='46' r='7' fill='%236f1e44'/%3E%3Ccircle cx='38' cy='46' r='7' fill='%236f1e44'/%3E%3Ccircle cx='31' cy='56' r='6.5' fill='%234a122c'/%3E%3C/svg%3E" />
+  <style>
+    :root {
+      --bg: #f4f5f6;
+      --surface: #ffffff;
+      --surface-alt: #eef0f2;
+      --text: #111315;
+      --muted: #4b525a;
+      --border: #c8cfd6;
+      --accent: #134e2a;
+      --accent-soft: #e4f1e8;
+      --warn-bg: #fff6e5;
+      --warn-border: #d99b26;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 0 0 48px 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 16px;
+      line-height: 1.4;
+    }
+
+    header {
+      background: var(--text);
+      color: #ffffff;
+      padding: 14px 16px;
+      border-bottom: 4px solid var(--accent);
+      text-align: center;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: 0.2px;
+      text-align: center;
+    }
+
+    header p {
+      margin: 3px 0 0 0;
+      font-size: 13px;
+      color: #d0d6dc;
+      text-align: center;
+    }
+
+    .tabs-wrap {
+      background: var(--surface);
+      border-bottom: 2px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+
+    .tabs {
+      max-width: 780px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      padding: 10px 12px;
+    }
+
+    .tab-btn {
+      min-height: 48px;
+      padding: 8px 10px;
+      font-size: 15px;
+      font-weight: 700;
+      border: 2px solid var(--border);
+      border-radius: 6px;
+      background: var(--surface-alt);
+      color: var(--text);
+      cursor: pointer;
+      text-align: center;
+    }
+
+    .tab-btn.active {
+      background: var(--accent);
+      color: #ffffff;
+      border-color: var(--accent);
+    }
+
+    .container {
+      max-width: 780px;
+      margin: 0 auto;
+      padding: 12px;
+    }
+
+    .control-box {
+      background: var(--surface);
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 14px;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      color: var(--muted);
+      margin-bottom: 6px;
+      text-align: center;
+    }
+
+    select, input[type="text"] {
+      width: 100%;
+      min-height: 52px;
+      padding: 10px 12px;
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--text);
+      background: #ffffff;
+      border: 2px solid var(--text);
+      border-radius: 6px;
+    }
+
+    .summary-banner {
+      background: var(--surface);
+      border: 2px solid var(--text);
+      border-radius: 8px;
+      padding: 14px;
+      margin-bottom: 14px;
+      text-align: center;
+    }
+
+    .summary-title {
+      font-size: 20px;
+      font-weight: 900;
+      margin: 0 0 4px 0;
+    }
+
+    .summary-sub {
+      font-size: 14px;
+      color: var(--muted);
+      font-weight: 600;
+      margin: 0;
+    }
+
+    .group-heading {
+      font-size: 15px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      color: var(--accent);
+      background: var(--accent-soft);
+      border-left: 5px solid var(--accent);
+      padding: 8px 12px;
+      margin: 14px 0 8px 0;
+      border-radius: 0 6px 6px 0;
+    }
+
+    .valve-card {
+      background: var(--surface);
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 14px;
+      margin-bottom: 10px;
+    }
+
+    .valve-top {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 8px;
+    }
+
+    .valve-badge {
+      background: var(--text);
+      color: #ffffff;
+      font-size: 18px;
+      font-weight: 900;
+      padding: 5px 11px;
+      border-radius: 5px;
+    }
+
+    .block-name {
+      font-size: 19px;
+      font-weight: 800;
+    }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin: 8px 0;
+    }
+
+    .metric-box {
+      background: var(--surface-alt);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 8px 10px;
+    }
+
+    .metric-label {
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .metric-val {
+      font-size: 18px;
+      font-weight: 900;
+      color: var(--text);
+      margin-top: 2px;
+    }
+
+    .sub-detail {
+      font-size: 13px;
+      color: var(--muted);
+      font-weight: 600;
+      margin-top: 6px;
+    }
+
+    .note-box {
+      background: var(--warn-bg);
+      border: 1.5px solid var(--warn-border);
+      border-radius: 6px;
+      padding: 10px 12px;
+      font-size: 13px;
+      font-weight: 600;
+      margin-top: 10px;
+      text-align: left;
+    }
+
+    .shorthand-box {
+      margin-top: 22px;
+      background: var(--surface);
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+    }
+
+    .shorthand-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 6px;
+    }
+
+    .go-btn {
+      min-height: 52px;
+      padding: 0 18px;
+      font-size: 16px;
+      font-weight: 800;
+      background: var(--accent);
+      color: #ffffff;
+      border: 2px solid var(--accent);
+      border-radius: 6px;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .shorthand-result-header {
+      background: var(--surface-alt);
+      border: 1.5px solid var(--border);
+      border-radius: 6px;
+      padding: 10px 12px;
+      margin-top: 12px;
+      margin-bottom: 8px;
+    }
+
+    .shorthand-token {
+      font-size: 16px;
+      font-weight: 900;
+      color: var(--text);
+    }
+
+    .shorthand-interp {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--accent);
+      margin-top: 2px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Raupo Irrigation Lookup</h1>
+    <p>Hunter Blocks • Valves &amp; Outer Rows</p>
+  </header>
+
+  <div class="tabs-wrap">
+    <nav class="tabs" aria-label="Lookup mode">
+      <button id="tab-hunter" class="tab-btn active" onclick="setMode('hunter')">Hunter Block</button>
+      <button id="tab-valve" class="tab-btn" onclick="setMode('valve')">Valve / Station</button>
+    </nav>
+  </div>
+
+  <main class="container">
+    <section id="controls-hunter" class="control-box">
+      <label for="select-hunter">Select Hunter Block (1–23)</label>
+      <select id="select-hunter" onchange="renderHunter(Number(this.value))"></select>
+    </section>
+
+    <section id="controls-valve" class="control-box" style="display:none;">
+      <label for="select-valve">Select Valve / Station (1–36, no V34)</label>
+      <select id="select-valve" onchange="renderValve(Number(this.value))"></select>
+    </section>
+
+    <section id="output"></section>
+
+    <section class="shorthand-box" aria-label="Whiteboard shorthand lookup">
+      <label for="shorthand-input">Quick Whiteboard / Shorthand Decoder</label>
+      <div class="shorthand-row">
+        <input
+          id="shorthand-input"
+          type="text"
+          placeholder="e.g. LOU1, OSI7, WILVI, FIN YV, LAN2"
+          onkeydown="if (event.key === 'Enter') runShorthand();"
+        />
+        <button type="button" class="go-btn" onclick="runShorthand()">Decode</button>
+      </div>
+      <div id="shorthand-output"></div>
+    </section>
+  </main>
+
+  <script>
+    const DATA = {
+      valves: [
+        { valve: 1, block: "Osip", sub: "OSIPN1 / OSIPN2 (PN 777)", loc: "Row 77", rows: "Rows 1–136" },
+        { valve: 2, block: "Osip", sub: "OSIPN3 (PN BDX 115)", loc: "Row 191", rows: "Rows 137–191" },
+        { valve: 3, block: "Osip", sub: "OSIPN3 (PN BDX 115)", loc: "Row 167", rows: "Rows 137–191" },
+        { valve: 4, block: "Osip", sub: "OSIPN4 / OSIPN5 (PN Abel / 5)", loc: "Row 192", rows: "Rows 192–242" },
+        { valve: 5, block: "Osip", sub: "OSIPN4 / OSIPN5 (PN Abel / 5)", loc: "Row 218", rows: "Rows 192–242" },
+        { valve: 6, block: "Osip", sub: "OSIPN6 / OSIPN7 (PN 777 / AM 10/5)", loc: "Row 285", rows: "Rows 243–286" },
+        { valve: 7, block: "Osip", sub: "OSIPN7 / OSIPN8 (PN AM 10/5 / 6)", loc: "Row 308", rows: "Rows 287–358" },
+        { valve: 8, block: "Sacha", sub: "SACPN1 (PN 777)", loc: "Row 23", rows: "Rows 1–44" },
+        { valve: 9, block: "Sacha", sub: "SACPN2 (PN BDX 115)", loc: "Row 58", rows: "Rows 45–72" },
+        { valve: 10, block: "Sacha", sub: "SACPN3 (PN AM 10/5)", loc: "Row 86", rows: "Rows 73–100" },
+        { valve: 11, block: "Sacha", sub: "SACPN4 (PN 777)", loc: "Row 114", rows: "Rows 101–128" },
+        { valve: 12, block: "Louis", sub: "LOUPN2 (PN BDX 115)", loc: "Row 55", rows: "Rows 39–74" },
+        { valve: 13, block: "Louis", sub: "LOUPN4 (PN AM 10/5)", loc: "Row 106", rows: "Rows 105–128" },
+        { valve: 14, block: "Leopold", sub: "LEOPN1 North (PN UCD5)", loc: "Row 22", rows: "N. Rows 1–42" },
+        { valve: 15, block: "Leopold", sub: "LEOPN1 North (PN UCD5)", loc: "Row 62", rows: "N. Rows 43–82" },
+        { valve: 16, block: "Leopold", sub: "LEOCH2–4 South (Chardonnay)", loc: "Row 168", rows: "S. Rows 83–171" },
+        { valve: 17, block: "Louis", sub: "LOUSB1 (Sauv Blanc 316)", loc: "Row 19", rows: "Rows 1–38" },
+        { valve: 18, block: "Louis", sub: "LOUSB3 (Sauv Blanc MS)", loc: "Row 91", rows: "Rows 75–105" },
+        { valve: 19, block: "Lana", sub: "LANSB2 (Sauv Blanc 316)", loc: "Row 34", rows: "Rows 17–51" },
+        { valve: 20, block: "Lana", sub: "LANSB3 (Sauv Blanc 317)", loc: "Row 69", rows: "Rows 52–85" },
+        { valve: 21, block: "Lilly / William", sub: "LILSB South (SB MS) / WILSY1 (Syrah)", loc: "Row 21", rows: "Lilly: Rows 1–42S | William: Rows 1–42" },
+        { valve: 22, block: "Lilly", sub: "LILSB North (Sauv Blanc MS)", loc: "Paddock", rows: "Rows 1–42N" },
+        { valve: 23, block: "Helen", sub: "HELSB3 (Sauv Blanc MS)", loc: "Row 80", rows: "Rows 67–90" },
+        { valve: 24, block: "Helen", sub: "HELSB3 (Sauv Blanc MS)", loc: "Row 54", rows: "Rows 42–66" },
+        { valve: 25, block: "Sylvain", sub: "SYLCH1 / SYLCH2 (Chardonnay)", loc: "Row 46", rows: "Rows 17–46" },
+        { valve: 26, block: "Sylvain", sub: "SYLCH2 / SYLCH3 (Chardonnay)", loc: "Row 47", rows: "Rows 47–90" },
+        { valve: 27, block: "Leopold", sub: "LEOPN1 South (PN UCD5)", loc: "Row 82", rows: "S. Rows 11–82" },
+        { valve: 28, block: "Leopold", sub: "LEOCH2–3 North (Chardonnay)", loc: "Paddock", rows: "N. Rows 83–132" },
+        { valve: 29, block: "Finbar", sub: "FINSB1 / FINRI2 (SB & Riesling)", loc: "Row 21", rows: "Rows 1–21" },
+        { valve: 30, block: "Finbar", sub: "FINRI3 (Riesling GM 110)", loc: "Row 22", rows: "Rows 22–44" },
+        { valve: 31, block: "William", sub: "WILPG3 / WILPG4 (Pinot Gris)", loc: "Row 97", rows: "Rows 93–115" },
+        { valve: 32, block: "William", sub: "WILPG2 / WILPG3 (Pinot Gris)", loc: "Row 67", rows: "Rows 43–92" },
+        { valve: 33, block: "Helen", sub: "HELSE1 / HELSE2 (Semillon)", loc: "Row 25", rows: "Rows 1–41" },
+        { valve: 35, block: "William", sub: "WILVI5 (Viognier)", loc: "Row 131", rows: "Rows 116–204" },
+        { valve: 36, block: "Lana", sub: "LANSB1 (Sauv Blanc MS)", loc: "Row 1", rows: "Rows 1–16" }
+      ],
+      hunterBlocks: [
+        { id: 1, raw: "Osip top", clean: "Osip Top (PN 3, 4 & 5)", valves: [2, 4], note: "" },
+        { id: 2, raw: "Sylvain", clean: "Sylvain (Chardonnay 1–3)", valves: [25, 26], note: "" },
+        { id: 3, raw: "Finbar", clean: "Finbar (SB & Riesling)", valves: [29, 30], note: "" },
+        { id: 4, raw: "Lilly", clean: "Lilly (Sauvignon Blanc)", valves: [21, 22], note: "Valve 21 sits on the William/Lilly boundary track (Rows 1–42)." },
+        { id: 5, raw: "Leopold PN North", clean: "Leopold Pinot Noir North", valves: [14, 15], note: "" },
+        { id: 6, raw: "Helen", clean: "Helen (Sauvignon Blanc 3)", valves: [23, 24], note: "Helen 3 spans Rows 41–92 on clone map; V24 covers Rows 42–66 and V23 covers Rows 67–90." },
+        { id: 7, raw: "Osip 7 and 8", clean: "Osip 7 & 8 (PN South)", valves: [6, 7], note: "" },
+        { id: 8, raw: "Osip Bottom", clean: "Osip Bottom (PN 3, 4 & 5)", valves: [3, 5], note: "" },
+        { id: 9, raw: "Leopold PN South + Helen SEM", clean: "Leopold PN South + Helen Semillon", valves: [27, 33], note: "" },
+        { id: 10, raw: "Leopold CH", clean: "Leopold Chardonnay (North & South)", valves: [28, 16], note: "" },
+        { id: 11, raw: "William PG", clean: "William Pinot Gris", valves: [32, 31], note: "" },
+        { id: 12, raw: "William Viognier + Lana 1", clean: "William Viognier + Lana 1 (SB)", valves: [35, 36], note: "" },
+        { id: 13, raw: "Lana 2 and 3", clean: "Lana 2 & 3 (Sauvignon Blanc)", valves: [19, 20], note: "Sheet lists Lana 2 & 3 with Valves 19 & 20 (Rows 17–51 and 52–85)." },
+        { id: 14, raw: "Louis 1 and 3", clean: "Louis 1 & 3 (Sauvignon Blanc)", valves: [17, 18], note: "" },
+        { id: 15, raw: "Louis 2 and 4", clean: "Louis 2 & 4 (Pinot Noir)", valves: [12, 13], note: "" },
+        { id: 16, raw: "Sacha 1 and 2", clean: "Sacha 1 & 2 (Pinot Noir)", valves: [8, 9], note: "" },
+        { id: 17, raw: "Sacha 3 and 4", clean: "Sacha 3 & 4 (Pinot Noir)", valves: [10, 11], note: "" },
+        { id: 18, raw: "Osip 1 and 2", clean: "Osip 1 & 2 (plus Leopold CH South)", valves: [1, 16], note: "Sheet pairs Valve 1 (Osip) with Valve 16 (Leopold CH South)." },
+        { id: 19, raw: "YV1 LAN2/3, LOU3", clean: "Young Vine 1: Lana 2 & 3 + Louis 3", valves: [19, 20, 18], note: "Grouped by block: Lana 2/3 = Valves 19 & 20; Louis 3 = Valve 18 (Row 91)." },
+        { id: 20, raw: "YV2 HEL, LEOCHN, FIN", clean: "Young Vine 2: Helen + Leopold CH + Finbar", valves: [33, 24, 23, 16, 29], note: "Sheet lists 16/23/24/29/33 out of order. Grouped here by block: Helen (V33, V24, V23), Leopold CH South (V16), Finbar (V29)." },
+        { id: 21, raw: "YV3 WILPG,VIO, LOU/LAN1", clean: "Young Vine 3: William PG & Vio + Louis 1 + Lana 1", valves: [32, 31, 35, 17, 36], note: "Valve 36 is handwritten on the sheet for Lana 1 (Row 1)." },
+        { id: 22, raw: "FINBAR WEST LEO CH N", clean: "Finbar West + Leopold Chardonnay North", valves: [30, 28], note: "" },
+        { id: 23, raw: "HELSEM+LAN36", clean: "Helen Semillon + Lana 1 (Valve 36)", valves: [33, 36], note: "" }
+      ]
+    };
+
+    const SHORTHAND_RULES = [
+      {
+        keys: ["LOU1", "LOUIS1", "LOUSB1"],
+        label: "Louis Block 1 (LOUSB1 — Sauv Blanc)",
+        valves: [17],
+        note: "Matches Louis Block 1 (Valve 17, Row 19). Note: Louis PN blocks are LOUPN2 (Valve 12) and LOUPN4 (Valve 13)."
+      },
+      {
+        keys: ["LOU2", "LOUIS2", "LOUPN2"],
+        label: "Louis Block 2 (LOUPN2 — Pinot Noir)",
+        valves: [12],
+        note: "Matches Louis PN2 (Valve 12, Row 55). Confirm whether SB or PN is intended if checking adjacent rows."
+      },
+      {
+        keys: ["LOU3", "LOUIS3", "LOUSB3"],
+        label: "Louis Block 3 (LOUSB3 — Sauv Blanc)",
+        valves: [18],
+        note: "Matches Louis Block 3 (Valve 18, Row 91), also paired in Hunter Block 19 (YV1 LAN2/3, LOU3)."
+      },
+      {
+        keys: ["LOU4", "LOUIS4", "LOUPN4"],
+        label: "Louis Block 4 (LOUPN4 — Pinot Noir)",
+        valves: [13],
+        note: "Matches Louis PN4 (Valve 13, Row 106)."
+      },
+      {
+        keys: ["LOU", "LOUIS"],
+        label: "Louis (All Louis Valves)",
+        valves: [17, 12, 18, 13],
+        note: "Multiple Louis valves exist across Sauv Blanc (V17, V18) and Pinot Noir (V12, V13) — check specific block number."
+      },
+      {
+        keys: ["OSI7", "OSIP7", "OSIPN7"],
+        label: "Osip 7 (OSIPN7 — Pinot Noir South)",
+        valves: [7, 6],
+        note: "Crossover alert: Valve 7 (Row 308, Rows 287–358) is primary for Osip 7/8, while Valve 6 (Row 285, Rows 243–286) covers OSIPN6 / OSIPN7. Both sit on Hunter Block 7."
+      },
+      {
+        keys: ["OSI8", "OSIP8", "OSIPN8"],
+        label: "Osip 8 (OSIPN8 — Pinot Noir South)",
+        valves: [7],
+        note: "Covers Osip South lower rows (Valve 7, Row 308, Rows 287–358; Hunter Block 7)."
+      },
+      {
+        keys: ["OSIPTOP", "OSITOP", "OSIPN3", "OSIPN4", "OSIPN5"],
+        label: "Osip Top / Mid (Hunter Block 1)",
+        valves: [2, 4],
+        note: "Crossover alert: Hunter Block 1 (Osip top) uses Valves 2 & 4, while Hunter Block 8 (Osip Bottom) uses Valves 3 & 5 across overlapping sub-block row ranges."
+      },
+      {
+        keys: ["OSIPBOT", "OSIPBOTTOM", "OSIBOT"],
+        label: "Osip Bottom (Hunter Block 8)",
+        valves: [3, 5],
+        note: "Crossover alert: Osip Bottom uses Valves 3 & 5; confirm you aren't looking for Osip Top (Valves 2 & 4)."
+      },
+      {
+        keys: ["OSIP1", "OSIP2", "OSIPN1", "OSIPN2", "OSI1", "OSI2"],
+        label: "Osip 1 / 2 (Hunter Block 18)",
+        valves: [1, 16],
+        note: "Crossover alert: Hunter Block 18 pairs Osip Valve 1 (Row 77) with Leopold CH South Valve 16 (Row 168) — verify block intent."
+      },
+      {
+        keys: ["WILVI", "WILVI5", "WILLIAMVI", "WILLIAMVIOGNIER", "VIO"],
+        label: "William Viognier (WILVI5)",
+        valves: [35],
+        note: "Matches William Viognier (Valve 35, Row 131, Rows 116–204), also included in Hunter Blocks 12 & 21."
+      },
+      {
+        keys: ["WILPG", "WILLIAMPG", "WILPG2", "WILPG3", "WILPG4"],
+        label: "William Pinot Gris (Hunter Block 11)",
+        valves: [32, 31],
+        note: "Covers William Pinot Gris blocks via Valve 32 (Row 67, Rows 43–92) and Valve 31 (Row 97, Rows 93–115)."
+      },
+      {
+        keys: ["FINYV", "FINBARYV", "FINBAR2YV", "FIN2YV"],
+        label: "Finbar Young Vine (extrapolated from Hunter Block 20)",
+        valves: [29],
+        note: "Extrapolated from Hunter Block 20 (YV2 HEL, LEOCHN, FIN), which assigns Finbar to Valve 29 (Row 21, Rows 1–21). Confirm if Finbar main block (V29 & V30) is meant."
+      },
+      {
+        keys: ["FIN", "FINBAR"],
+        label: "Finbar (Hunter Block 3)",
+        valves: [29, 30],
+        note: "Finbar spans Valve 29 (Row 21, Rows 1–21) and Valve 30 (Row 22, Rows 22–44)."
+      },
+      {
+        keys: ["LAN1", "LANA1", "LANSB1", "LAN36"],
+        label: "Lana 1 (LANSB1 — Sauv Blanc)",
+        valves: [36],
+        note: "Matches Lana 1 (Valve 36, Row 1, Rows 1–16), referenced on Hunter Blocks 12, 21 & 23."
+      },
+      {
+        keys: ["LAN2", "LANA2", "LANSB2"],
+        label: "Lana 2 (LANSB2 — Sauv Blanc)",
+        valves: [19],
+        note: "Matches Lana 2 (Valve 19, Row 34, Rows 17–51), part of Hunter Block 13 and Hunter Block 19 (YV1)."
+      },
+      {
+        keys: ["LAN3", "LANA3", "LANSB3"],
+        label: "Lana 3 (LANSB3 — Sauv Blanc)",
+        valves: [20],
+        note: "Matches Lana 3 (Valve 20, Row 69, Rows 52–85), part of Hunter Block 13 and Hunter Block 19 (YV1)."
+      },
+      {
+        keys: ["LAN", "LANA", "LANA123", "LAN123"],
+        label: "Lana (Lana 1, 2 & 3)",
+        valves: [36, 19, 20],
+        note: "Ambiguous shorthand: Lana spans Valve 36 (Rows 1–16), Valve 19 (Rows 17–51), and Valve 20 (Rows 52–85)."
+      },
+      {
+        keys: ["HELSEM", "HELENSV", "HELSE1", "HELSE2"],
+        label: "Helen Semillon (HELSE1 / HELSE2)",
+        valves: [33],
+        note: "Matches Helen Semillon (Valve 33, Row 25, Rows 1–41), used in Hunter Blocks 9, 20 & 23."
+      },
+      {
+        keys: ["HEL", "HELEN", "HELSB3"],
+        label: "Helen (Sauv Blanc & Semillon)",
+        valves: [24, 23, 33],
+        note: "Helen covers Sauv Blanc 3 via Valve 24 (Row 54, Rows 42–66) and Valve 23 (Row 80, Rows 67–90), plus Semillon on Valve 33 (Row 25)."
+      },
+      {
+        keys: ["LILLY", "LIL", "LILSB"],
+        label: "Lilly (Hunter Block 4)",
+        valves: [21, 22],
+        note: "Crossover alert: Valve 21 sits on the William/Lilly boundary track (Rows 1–42); Valve 22 is in the paddock (Rows 1–42N)."
+      },
+      {
+        keys: ["SYL", "SYLVAIN", "SYLCH"],
+        label: "Sylvain Chardonnay (Hunter Block 2)",
+        valves: [25, 26],
+        note: "Covers Sylvain via Valve 25 (Row 46, Rows 17–46) and Valve 26 (Row 47, Rows 47–90)."
+      },
+      {
+        keys: ["SAC", "SACHA"],
+        label: "Sacha Pinot Noir (Hunter Blocks 16 & 17)",
+        valves: [8, 9, 10, 11],
+        note: "Sacha has four valves: V8 (R23), V9 (R58) in HB16, and V10 (R86), V11 (R114) in HB17."
+      },
+      {
+        keys: ["LEOCH", "LEOPOLDCH", "LEOCHN"],
+        label: "Leopold Chardonnay (Hunter Block 10)",
+        valves: [28, 16],
+        note: "Leopold CH covers North (Valve 28, Paddock, N. Rows 83–132) and South (Valve 16, Row 168, S. Rows 83–171)."
+      },
+      {
+        keys: ["LEOPN", "LEOPOLD", "LEOPNS"],
+        label: "Leopold Pinot Noir",
+        valves: [14, 15, 27],
+        note: "Leopold PN North uses Valves 14 & 15 (HB5); Leopold PN South uses Valve 27 (HB9)."
+      }
+    ];
+
+    const valveMap = Object.fromEntries(DATA.valves.map(v => [v.valve, v]));
+    const hunterMap = Object.fromEntries(DATA.hunterBlocks.map(h => [h.id, h]));
+
+    let currentMode = "hunter";
+    let currentHunterId = 13;
+    let currentValveNum = 29;
+
+    function initControls() {
+      const selHunter = document.getElementById("select-hunter");
+      DATA.hunterBlocks.forEach(hb => {
+        const opt = document.createElement("option");
+        opt.value = hb.id;
+        opt.textContent = `Block ${hb.id} — ${hb.raw}`;
+        selHunter.appendChild(opt);
+      });
+
+      const selValve = document.getElementById("select-valve");
+      DATA.valves.forEach(v => {
+        const opt = document.createElement("option");
+        opt.value = v.valve;
+        opt.textContent = `Valve ${v.valve} — ${v.block} (${v.loc})`;
+        selValve.appendChild(opt);
+      });
+    }
+
+    function setMode(mode) {
+      currentMode = mode;
+      ["hunter", "valve"].forEach(m => {
+        document.getElementById(`tab-${m}`).classList.toggle("active", m === mode);
+        document.getElementById(`controls-${m}`).style.display = m === mode ? "block" : "none";
+      });
+
+      if (mode === "hunter") renderHunter(currentHunterId);
+      if (mode === "valve") renderValve(currentValveNum);
+    }
+
+    function valveCardHTML(v, showBlockTitle = true) {
+      return `
+        <div class="valve-card">
+          <div class="valve-top">
+            <span class="valve-badge">VALVE ${v.valve}</span>
+            ${showBlockTitle ? `<span class="block-name">${v.block.toUpperCase()}</span>` : ""}
+          </div>
+          <div class="metrics">
+            <div class="metric-box">
+              <div class="metric-label">Valve Location</div>
+              <div class="metric-val">${v.loc}</div>
+            </div>
+            <div class="metric-box">
+              <div class="metric-label">Outer Rows</div>
+              <div class="metric-val">${v.rows}</div>
+            </div>
+          </div>
+          <div class="sub-detail">Section / Clone: ${v.sub}</div>
+        </div>
+      `;
+    }
+
+    function renderHunter(id) {
+      currentHunterId = id;
+      document.getElementById("select-hunter").value = id;
+
+      const hb = hunterMap[id];
+      const valves = hb.valves.map(num => valveMap[num]).filter(Boolean);
+
+      const grouped = [];
+      const seenBlocks = new Map();
+      valves.forEach(v => {
+        if (!seenBlocks.has(v.block)) {
+          const groupObj = { block: v.block, items: [] };
+          seenBlocks.set(v.block, groupObj);
+          grouped.push(groupObj);
+        }
+        seenBlocks.get(v.block).items.push(v);
+      });
+
+      let cardsHTML = "";
+      grouped.forEach(g => {
+        cardsHTML += `<div class="group-heading">${g.block}</div>`;
+        cardsHTML += g.items.map(v => valveCardHTML(v, false)).join("");
+      });
+
+      document.getElementById("output").innerHTML = `
+        <div class="summary-banner">
+          <h2 class="summary-title">Hunter Block ${hb.id}: ${hb.clean}</h2>
+          <p class="summary-sub">Sheet label: "${hb.raw}" • Valves: ${hb.valves.join(", ")}</p>
+          ${hb.note ? `<div class="note-box">Note: ${hb.note}</div>` : ""}
+        </div>
+        ${cardsHTML}
+      `;
+    }
+
+    function renderValve(num) {
+      currentValveNum = num;
+      document.getElementById("select-valve").value = num;
+      const v = valveMap[num];
+      document.getElementById("output").innerHTML = valveCardHTML(v, true);
+    }
+
+    function normalizeCode(raw) {
+      return raw
+        .toUpperCase()
+        .replace(/[-–—/(),.]+/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+    }
+
+    function decodeToken(rawToken) {
+      const clean = normalizeCode(rawToken);
+      const compact = clean.replace(/\s+/g, "");
+
+      // Direct valve match like "V29" or "VALVE 29"
+      const valveMatch = clean.match(/^(?:V|VALVE|STATION|STN)\s*(\d{1,2})$/);
+      if (valveMatch) {
+        const vNum = Number(valveMatch[1]);
+        if (valveMap[vNum]) {
+          return {
+            raw: rawToken,
+            title: `Direct Valve ${vNum}`,
+            valves: [vNum],
+            note: `Direct match to Valve ${vNum} (${valveMap[vNum].block}).`
+          };
+        }
+      }
+
+      // Exact or compact alias rule match
+      const exactRule = SHORTHAND_RULES.find(r =>
+        r.keys.includes(compact) || r.keys.includes(clean)
+      );
+      if (exactRule) {
+        return {
+          raw: rawToken,
+          title: exactRule.label,
+          valves: exactRule.valves,
+          note: exactRule.note
+        };
+      }
+
+      // Prefix / pattern match for block + number (e.g. "LAN 2 3" or "LOU 1 3")
+      const prefixMatches = SHORTHAND_RULES.filter(r =>
+        r.keys.some(k => k.length >= 3 && (compact.startsWith(k) || k.startsWith(compact)))
+      );
+      if (prefixMatches.length > 0) {
+        const best = prefixMatches[0];
+        const mergedValves = [];
+        prefixMatches.forEach(m => m.valves.forEach(vn => {
+          if (!mergedValves.includes(vn)) mergedValves.push(vn);
+        }));
+        return {
+          raw: rawToken,
+          title: prefixMatches.length === 1 ? best.label : `Possible Matches (${prefixMatches.map(m => m.label).join(" / ")})`,
+          valves: mergedValves,
+          note: prefixMatches.map(m => m.note).filter(Boolean).join(" ")
+        };
+      }
+
+      return {
+        raw: rawToken,
+        title: `No exact match for "${rawToken}"`,
+        valves: [],
+        note: "Try codes like LOU1, LOU3, OSI7, WILVI, FIN YV, LAN1, LAN2, or V29."
+      };
+    }
+
+    function runShorthand() {
+      const inputEl = document.getElementById("shorthand-input");
+      const outEl = document.getElementById("shorthand-output");
+      const text = inputEl.value.trim();
+      if (!text) {
+        outEl.innerHTML = "";
+        return;
+      }
+
+      const tokens = text
+        .split(/[\n,;]+/)
+        .map(s => s.trim())
+        .filter(Boolean);
+
+      outEl.innerHTML = tokens.map(tok => {A
+        const res = decodeToken(tok);
+        const cards = res.valves
+          .map(vn => valveMap[vn])
+          .filter(Boolean)
+          .map(v => valveCardHTML(v, true))
+          .join("");
+
+        return `
+          <div class="shorthand-result-header">
+            <div class="shorthand-token">"${res.raw}" → Valves: ${res.valves.length ? res.valves.join(", ") : "None"}</div>
+            <div class="shorthand-interp">${res.title}</div>
+            ${res.note ? `<div class="note-box">${res.note}</div>` : ""}
+          </div>
+          ${cards}
+        `;
+      }).join("");
+    }
+
+    initControls();
+    renderHunter(13);
+  </script>
+</body>
+</html>
