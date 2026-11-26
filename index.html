@@ -4,19 +4,22 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Raupo Irrigation Lookup</title>
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath d='M34 6c6 0 11 4 12 10-5 0-9-2-12-6-2 3-5 5-9 5 1-5 4-9 9-9z' fill='%231d6b38'/%3E%3Ccircle cx='24' cy='24' r='7' fill='%235b1838'/%3E%3Ccircle cx='38' cy='24' r='7' fill='%235b1838'/%3E%3Ccircle cx='18' cy='35' r='7' fill='%236f1e44'/%3E%3Ccircle cx='31' cy='35' r='7' fill='%235b1838'/%3E%3Ccircle cx='44' cy='35' r='7' fill='%236f1e44'/%3E%3Ccircle cx='24' cy='46' r='7' fill='%236f1e44'/%3E%3Ccircle cx='38' cy='46' r='7' fill='%236f1e44'/%3E%3Ccircle cx='31' cy='56' r='6.5' fill='%234a122c'/%3E%3C/svg%3E" />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath d='M34 6c6 0 11 4 12 10-5 0-9-2-12-6-2 3-5 5-9 5 1-5 4-9 9-9z' fill='%233a7233'/%3E%3Ccircle cx='24' cy='24' r='7' fill='%2388a866'/%3E%3Ccircle cx='38' cy='24' r='7' fill='%23789957'/%3E%3Ccircle cx='18' cy='35' r='7' fill='%2399b87a'/%3E%3Ccircle cx='31' cy='35' r='7' fill='%23789957'/%3E%3Ccircle cx='44' cy='35' r='7' fill='%2388a866'/%3E%3Ccircle cx='24' cy='46' r='7' fill='%2388a866'/%3E%3Ccircle cx='38' cy='46' r='7' fill='%23789957'/%3E%3Ccircle cx='31' cy='56' r='6.5' fill='%23688848'/%3E%3C/svg%3E" />
   <style>
     :root {
-      --bg: #f4f5f6;
+      --bg: #f5f7f4;
       --surface: #ffffff;
-      --surface-alt: #eef0f2;
-      --text: #111315;
-      --muted: #4b525a;
-      --border: #c8cfd6;
-      --accent: #134e2a;
-      --accent-soft: #e4f1e8;
-      --warn-bg: #fff6e5;
-      --warn-border: #d99b26;
+      --surface-alt: #eef2ec;
+      --text: #161b15;
+      --muted: #4b5649;
+      --border: #c5d0c1;
+      --accent: #3a7233;
+      --accent-soft: #e7f1e3;
+      --grape-tint: #94b374;
+      --warn-bg: #fff8e7;
+      --warn-border: #d49b2a;
+      --err-bg: #fdf0ef;
+      --err-border: #c94a4a;
     }
 
     * {
@@ -34,7 +37,7 @@
     }
 
     header {
-      background: var(--text);
+      background: #1f291e;
       color: #ffffff;
       padding: 14px 16px;
       border-bottom: 4px solid var(--accent);
@@ -52,7 +55,7 @@
     header p {
       margin: 3px 0 0 0;
       font-size: 13px;
-      color: #d0d6dc;
+      color: #d4dfd1;
       text-align: center;
     }
 
@@ -240,12 +243,32 @@
       text-align: left;
     }
 
-    .shorthand-box {
+    .err-box {
+      background: var(--err-bg);
+      border: 1.5px solid var(--err-border);
+      border-radius: 6px;
+      padding: 10px 12px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #7d2222;
+      margin-top: 10px;
+      text-align: left;
+    }
+
+    .translator-box {
       margin-top: 22px;
       background: var(--surface);
-      border: 2px solid var(--border);
+      border: 2px solid var(--grape-tint);
       border-radius: 8px;
       padding: 12px;
+    }
+
+    .translator-sub {
+      text-align: center;
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 600;
+      margin: -2px 0 8px 0;
     }
 
     .shorthand-row {
@@ -316,16 +339,17 @@
 
     <section id="output"></section>
 
-    <section class="shorthand-box" aria-label="Whiteboard shorthand lookup">
-      <label for="shorthand-input">Quick Whiteboard / Shorthand Decoder</label>
+    <section class="translator-box" aria-label="Vineyard block translator">
+      <label for="shorthand-input">Vineyard Block Translator</label>
+      <div class="translator-sub">Translate above-ground vineyard blocks, clone map codes &amp; shorthand to valves</div>
       <div class="shorthand-row">
         <input
           id="shorthand-input"
           type="text"
-          placeholder="e.g. LOU1, OSI7, WILVI, FIN YV, LAN2"
+          placeholder="e.g. LOU1, OSI7, WIL4, WILVI, FIN YV, OSIPN3"
           onkeydown="if (event.key === 'Enter') runShorthand();"
         />
-        <button type="button" class="go-btn" onclick="runShorthand()">Decode</button>
+        <button type="button" class="go-btn" onclick="runShorthand()">Translate</button>
       </div>
       <div id="shorthand-output"></div>
     </section>
@@ -397,165 +421,102 @@
       ]
     };
 
-    const SHORTHAND_RULES = [
-      {
-        keys: ["LOU1", "LOUIS1", "LOUSB1"],
-        label: "Louis Block 1 (LOUSB1 — Sauv Blanc)",
-        valves: [17],
-        note: "Matches Louis Block 1 (Valve 17, Row 19). Note: Louis PN blocks are LOUPN2 (Valve 12) and LOUPN4 (Valve 13)."
-      },
-      {
-        keys: ["LOU2", "LOUIS2", "LOUPN2"],
-        label: "Louis Block 2 (LOUPN2 — Pinot Noir)",
-        valves: [12],
-        note: "Matches Louis PN2 (Valve 12, Row 55). Confirm whether SB or PN is intended if checking adjacent rows."
-      },
-      {
-        keys: ["LOU3", "LOUIS3", "LOUSB3"],
-        label: "Louis Block 3 (LOUSB3 — Sauv Blanc)",
-        valves: [18],
-        note: "Matches Louis Block 3 (Valve 18, Row 91), also paired in Hunter Block 19 (YV1 LAN2/3, LOU3)."
-      },
-      {
-        keys: ["LOU4", "LOUIS4", "LOUPN4"],
-        label: "Louis Block 4 (LOUPN4 — Pinot Noir)",
-        valves: [13],
-        note: "Matches Louis PN4 (Valve 13, Row 106)."
-      },
-      {
-        keys: ["LOU", "LOUIS"],
-        label: "Louis (All Louis Valves)",
-        valves: [17, 12, 18, 13],
-        note: "Multiple Louis valves exist across Sauv Blanc (V17, V18) and Pinot Noir (V12, V13) — check specific block number."
-      },
-      {
-        keys: ["OSI7", "OSIP7", "OSIPN7"],
-        label: "Osip 7 (OSIPN7 — Pinot Noir South)",
-        valves: [7, 6],
-        note: "Crossover alert: Valve 7 (Row 308, Rows 287–358) is primary for Osip 7/8, while Valve 6 (Row 285, Rows 243–286) covers OSIPN6 / OSIPN7. Both sit on Hunter Block 7."
-      },
-      {
-        keys: ["OSI8", "OSIP8", "OSIPN8"],
-        label: "Osip 8 (OSIPN8 — Pinot Noir South)",
-        valves: [7],
-        note: "Covers Osip South lower rows (Valve 7, Row 308, Rows 287–358; Hunter Block 7)."
-      },
-      {
-        keys: ["OSIPTOP", "OSITOP", "OSIPN3", "OSIPN4", "OSIPN5"],
-        label: "Osip Top / Mid (Hunter Block 1)",
-        valves: [2, 4],
-        note: "Crossover alert: Hunter Block 1 (Osip top) uses Valves 2 & 4, while Hunter Block 8 (Osip Bottom) uses Valves 3 & 5 across overlapping sub-block row ranges."
-      },
-      {
-        keys: ["OSIPBOT", "OSIPBOTTOM", "OSIBOT"],
-        label: "Osip Bottom (Hunter Block 8)",
-        valves: [3, 5],
-        note: "Crossover alert: Osip Bottom uses Valves 3 & 5; confirm you aren't looking for Osip Top (Valves 2 & 4)."
-      },
-      {
-        keys: ["OSIP1", "OSIP2", "OSIPN1", "OSIPN2", "OSI1", "OSI2"],
-        label: "Osip 1 / 2 (Hunter Block 18)",
-        valves: [1, 16],
-        note: "Crossover alert: Hunter Block 18 pairs Osip Valve 1 (Row 77) with Leopold CH South Valve 16 (Row 168) — verify block intent."
-      },
-      {
-        keys: ["WILVI", "WILVI5", "WILLIAMVI", "WILLIAMVIOGNIER", "VIO"],
-        label: "William Viognier (WILVI5)",
-        valves: [35],
-        note: "Matches William Viognier (Valve 35, Row 131, Rows 116–204), also included in Hunter Blocks 12 & 21."
-      },
-      {
-        keys: ["WILPG", "WILLIAMPG", "WILPG2", "WILPG3", "WILPG4"],
-        label: "William Pinot Gris (Hunter Block 11)",
-        valves: [32, 31],
-        note: "Covers William Pinot Gris blocks via Valve 32 (Row 67, Rows 43–92) and Valve 31 (Row 97, Rows 93–115)."
-      },
-      {
-        keys: ["FINYV", "FINBARYV", "FINBAR2YV", "FIN2YV"],
-        label: "Finbar Young Vine (extrapolated from Hunter Block 20)",
-        valves: [29],
-        note: "Extrapolated from Hunter Block 20 (YV2 HEL, LEOCHN, FIN), which assigns Finbar to Valve 29 (Row 21, Rows 1–21). Confirm if Finbar main block (V29 & V30) is meant."
-      },
-      {
-        keys: ["FIN", "FINBAR"],
-        label: "Finbar (Hunter Block 3)",
-        valves: [29, 30],
-        note: "Finbar spans Valve 29 (Row 21, Rows 1–21) and Valve 30 (Row 22, Rows 22–44)."
-      },
-      {
-        keys: ["LAN1", "LANA1", "LANSB1", "LAN36"],
-        label: "Lana 1 (LANSB1 — Sauv Blanc)",
-        valves: [36],
-        note: "Matches Lana 1 (Valve 36, Row 1, Rows 1–16), referenced on Hunter Blocks 12, 21 & 23."
-      },
-      {
-        keys: ["LAN2", "LANA2", "LANSB2"],
-        label: "Lana 2 (LANSB2 — Sauv Blanc)",
-        valves: [19],
-        note: "Matches Lana 2 (Valve 19, Row 34, Rows 17–51), part of Hunter Block 13 and Hunter Block 19 (YV1)."
-      },
-      {
-        keys: ["LAN3", "LANA3", "LANSB3"],
-        label: "Lana 3 (LANSB3 — Sauv Blanc)",
-        valves: [20],
-        note: "Matches Lana 3 (Valve 20, Row 69, Rows 52–85), part of Hunter Block 13 and Hunter Block 19 (YV1)."
-      },
-      {
-        keys: ["LAN", "LANA", "LANA123", "LAN123"],
-        label: "Lana (Lana 1, 2 & 3)",
-        valves: [36, 19, 20],
-        note: "Ambiguous shorthand: Lana spans Valve 36 (Rows 1–16), Valve 19 (Rows 17–51), and Valve 20 (Rows 52–85)."
-      },
-      {
-        keys: ["HELSEM", "HELENSV", "HELSE1", "HELSE2"],
-        label: "Helen Semillon (HELSE1 / HELSE2)",
-        valves: [33],
-        note: "Matches Helen Semillon (Valve 33, Row 25, Rows 1–41), used in Hunter Blocks 9, 20 & 23."
-      },
-      {
-        keys: ["HEL", "HELEN", "HELSB3"],
-        label: "Helen (Sauv Blanc & Semillon)",
-        valves: [24, 23, 33],
-        note: "Helen covers Sauv Blanc 3 via Valve 24 (Row 54, Rows 42–66) and Valve 23 (Row 80, Rows 67–90), plus Semillon on Valve 33 (Row 25)."
-      },
-      {
-        keys: ["LILLY", "LIL", "LILSB"],
-        label: "Lilly (Hunter Block 4)",
-        valves: [21, 22],
-        note: "Crossover alert: Valve 21 sits on the William/Lilly boundary track (Rows 1–42); Valve 22 is in the paddock (Rows 1–42N)."
-      },
-      {
-        keys: ["SYL", "SYLVAIN", "SYLCH"],
-        label: "Sylvain Chardonnay (Hunter Block 2)",
-        valves: [25, 26],
-        note: "Covers Sylvain via Valve 25 (Row 46, Rows 17–46) and Valve 26 (Row 47, Rows 47–90)."
-      },
-      {
-        keys: ["SAC", "SACHA"],
-        label: "Sacha Pinot Noir (Hunter Blocks 16 & 17)",
-        valves: [8, 9, 10, 11],
-        note: "Sacha has four valves: V8 (R23), V9 (R58) in HB16, and V10 (R86), V11 (R114) in HB17."
-      },
-      {
-        keys: ["LEOCH", "LEOPOLDCH", "LEOCHN"],
-        label: "Leopold Chardonnay (Hunter Block 10)",
-        valves: [28, 16],
-        note: "Leopold CH covers North (Valve 28, Paddock, N. Rows 83–132) and South (Valve 16, Row 168, S. Rows 83–171)."
-      },
-      {
-        keys: ["LEOPN", "LEOPOLD", "LEOPNS"],
-        label: "Leopold Pinot Noir",
-        valves: [14, 15, 27],
-        note: "Leopold PN North uses Valves 14 & 15 (HB5); Leopold PN South uses Valve 27 (HB9)."
-      }
+    const BLOCK_TRANSLATIONS = [
+      { keys: ["OSIP1", "OSI1", "OSIPN1", "OSIPPN1"], label: "Osip 1 — OSIPN1 (PN 777 • Clone Map R:1–76)", valves: [1], note: "Valve 1 (Row 77) irrigates both OSIPN1 (R:1–76) and OSIPN2 (R:77–136). Note: Hunter Block 18 also pairs V1 with Leopold V16." },
+      { keys: ["OSIP2", "OSI2", "OSIPN2", "OSIPPN2"], label: "Osip 2 — OSIPN2 (PN 777 • Clone Map R:77–136)", valves: [1], note: "Valve 1 (Row 77) covers OSIPN1 & OSIPN2 (Rows 1–136)." },
+      { keys: ["OSIP3", "OSI3", "OSIPN3", "OSIPPN3"], label: "Osip 3 — OSIPN3 (PN BDX 115 • Clone Map R:137–191)", valves: [2, 3], note: "Split across two valves: Valve 2 (Row 191, Hunter Block 1 Osip Top) and Valve 3 (Row 167, Hunter Block 8 Osip Bottom)." },
+      { keys: ["OSIP4", "OSI4", "OSIPN4", "OSIPPN4"], label: "Osip 4 — OSIPN4 (PN Abel • Clone Map R:192–216)", valves: [4, 5], note: "Shared with OSIPN5 across Valve 4 (Row 192, HB1 Osip Top) and Valve 5 (Row 218, HB8 Osip Bottom)." },
+      { keys: ["OSIP5", "OSI5", "OSIPN5", "OSIPPN5"], label: "Osip 5 — OSIPN5 (PN Clone 5 • Clone Map R:217–242)", valves: [4, 5], note: "Shared with OSIPN4 across Valve 4 (Row 192, HB1 Osip Top) and Valve 5 (Row 218, HB8 Osip Bottom)." },
+      { keys: ["OSIP6", "OSI6", "OSIPN6", "OSIPPN6"], label: "Osip 6 — OSIPN6 (PN 777 • Clone Map R:243–261)", valves: [6], note: "Valve 6 (Row 285) covers OSIPN6 and upper OSIPN7 (Rows 243–286)." },
+      { keys: ["OSIP7", "OSI7", "OSIPN7", "OSIPPN7"], label: "Osip 7 — OSIPN7 (PN AM 10/5 • Clone Map R:262–341)", valves: [7, 6], note: "Crossover alert: Valve 7 (Row 308, Rows 287–358) is primary for Osip 7/8, while Valve 6 (Row 285, Rows 243–286) covers upper OSIPN7. Both sit on Hunter Block 7." },
+      { keys: ["OSIP8", "OSI8", "OSIPN8", "OSIPPN8"], label: "Osip 8 — OSIPN8 (PN Clone 6 • Clone Map R:342–358)", valves: [7], note: "Valve 7 (Row 308, Rows 287–358) covers lower OSIPN7 and OSIPN8." },
+      { keys: ["OSIPTOP", "OSITOP"], label: "Osip Top (Hunter Block 1 — PN 3, 4 & 5)", valves: [2, 4], note: "Crossover alert: Osip Top uses Valves 2 & 4, while Osip Bottom (HB8) uses Valves 3 & 5 across the same row sections." },
+      { keys: ["OSIPBOT", "OSIPBOTTOM", "OSIBOT"], label: "Osip Bottom (Hunter Block 8 — PN 3, 4 & 5)", valves: [3, 5], note: "Crossover alert: Osip Bottom uses Valves 3 & 5; confirm you aren't looking for Osip Top (Valves 2 & 4)." },
+      { keys: ["OSIP", "OSI", "OSIPN", "OSIPPN"], label: "Osip (All Osip Pinot Noir Blocks 1–8)", valves: [1, 2, 3, 4, 5, 6, 7], note: "Osip spans 7 valves (V1–V7) across OSIPN1–8. Specify a block number (e.g. OSIP1, OSIP3, OSIP7)." },
+
+      { keys: ["WIL1", "WILLIAM1", "WILSY1", "WILSY", "WILLIAMSY"], label: "William 1 — WILSY1 (Syrah TWR • Clone Map R:1–42)", valves: [21], note: "Crossover alert: Valve 21 (Row 21) sits on the boundary track shared with Lilly South (LILSB R:1–42)." },
+      { keys: ["WIL2", "WILLIAM2", "WILPG2"], label: "William 2 — WILPG2 (Pinot Gris Sel Ovaille • Clone Map R:43–84)", valves: [32], note: "Valve 32 (Row 67) covers WILPG2 and upper WILPG3 (Rows 43–92)." },
+      { keys: ["WIL3", "WILLIAM3", "WILPG3"], label: "William 3 — WILPG3 (Pinot Gris Barrie • Clone Map R:85–102)", valves: [32, 31], note: "Split across Valve 32 (Rows 43–92) and Valve 31 (Row 97, Rows 93–115)." },
+      { keys: ["WIL4", "WILLIAM4", "WILPG4"], label: "William 4 — WILPG4 (Pinot Gris PN00141 • Clone Map R:103–122)", valves: [31], note: "Valve 31 (Row 97) covers lower WILPG3 and WILPG4 (Rows 93–115)." },
+      { keys: ["WIL5", "WILLIAM5", "WILVI", "WILVI5", "WILLIAMVI", "WILLIAMVIOGNIER", "VIO"], label: "William 5 — WILVI5 (Viognier • Clone Map R:123–204)", valves: [35], note: "Valve 35 (Row 131, Rows 116–204), also included in Hunter Blocks 12 & 21." },
+      { keys: ["WILPG", "WILLIAMPG"], label: "William Pinot Gris (WILPG2–4 • Hunter Block 11)", valves: [32, 31], note: "Covers WILPG2–4 via Valve 32 (Rows 43–92) and Valve 31 (Rows 93–115)." },
+      { keys: ["WIL", "WILLIAM"], label: "William (All William Blocks: SY1, PG2–4, VI5)", valves: [21, 32, 31, 35], note: "William includes Syrah 1 (V21), Pinot Gris 2–4 (V32, V31), and Viognier 5 (V35). Specify WIL1–WIL5, WILPG, or WILVI." },
+
+      { keys: ["LOU1", "LOUIS1", "LOUSB1"], label: "Louis 1 — LOUSB1 (Sauv Blanc 316 • Clone Map R:1–38)", valves: [17], note: "Valve 17 (Row 19, Rows 1–38)." },
+      { keys: ["LOU2", "LOUIS2", "LOUPN2"], label: "Louis 2 — LOUPN2 (Pinot Noir BDX 115 • Clone Map R:39–74)", valves: [12], note: "Valve 12 (Row 55, Rows 39–74)." },
+      { keys: ["LOU3", "LOUIS3", "LOUSB3"], label: "Louis 3 — LOUSB3 (Sauv Blanc MS • Clone Map R:75–105)", valves: [18], note: "Valve 18 (Row 91, Rows 75–105), also paired in Hunter Block 19 (YV1)." },
+      { keys: ["LOU4", "LOUIS4", "LOUPN4"], label: "Louis 4 — LOUPN4 (Pinot Noir AM 10/5 • Clone Map R:106–128)", valves: [13], note: "Valve 13 (Row 106, Rows 105–128)." },
+      { keys: ["LOUSB"], label: "Louis Sauvignon Blanc (LOUSB1 & LOUSB3 • Hunter Block 14)", valves: [17, 18], note: "Covers LOUSB1 (Valve 17, R:1–38) and LOUSB3 (Valve 18, R:75–105)." },
+      { keys: ["LOUPN"], label: "Louis Pinot Noir (LOUPN2 & LOUPN4 • Hunter Block 15)", valves: [12, 13], note: "Covers LOUPN2 (Valve 12, R:39–74) and LOUPN4 (Valve 13, R:106–128)." },
+      { keys: ["LOU", "LOUIS"], label: "Louis (All Louis Blocks 1–4)", valves: [17, 12, 18, 13], note: "Louis alternates SB and PN: LOU1/LOUSB1 (V17), LOU2/LOUPN2 (V12), LOU3/LOUSB3 (V18), LOU4/LOUPN4 (V13)." },
+
+      { keys: ["SAC1", "SACHA1", "SACPN1"], label: "Sacha 1 — SACPN1 (PN 777 • Clone Map R:1–44)", valves: [8], note: "Valve 8 (Row 23, Rows 1–44)." },
+      { keys: ["SAC2", "SACHA2", "SACPN2"], label: "Sacha 2 — SACPN2 (PN BDX 115 • Clone Map R:45–72)", valves: [9], note: "Valve 9 (Row 58, Rows 45–72)." },
+      { keys: ["SAC3", "SACHA3", "SACPN3"], label: "Sacha 3 — SACPN3 (PN AM 10/5 • Clone Map R:73–100)", valves: [10], note: "Valve 10 (Row 86, Rows 73–100)." },
+      { keys: ["SAC4", "SACHA4", "SACPN4"], label: "Sacha 4 — SACPN4 (PN 777 • Clone Map R:101–128)", valves: [11], note: "Valve 11 (Row 114, Rows 101–128)." },
+      { keys: ["SAC", "SACHA", "SACPN"], label: "Sacha (All Sacha Pinot Noir Blocks 1–4)", valves: [8, 9, 10, 11], note: "Sacha covers V8 (SACPN1), V9 (SACPN2), V10 (SACPN3), and V11 (SACPN4)." },
+
+      { keys: ["LAN1", "LANA1", "LANSB1", "LAN36"], label: "Lana 1 — LANSB1 (Sauv Blanc MS • Clone Map R:1–18)", valves: [36], note: "Valve 36 (Row 1, Rows 1–16), referenced on Hunter Blocks 12, 21 & 23." },
+      { keys: ["LAN2", "LANA2", "LANSB2"], label: "Lana 2 — LANSB2 (Sauv Blanc 316)", valves: [19], note: "Valve 19 (Row 34, Rows 17–51)." },
+      { keys: ["LAN3", "LANA3", "LANSB3"], label: "Lana 3 — LANSB3 (Sauv Blanc 317)", valves: [20], note: "Valve 20 (Row 69, Rows 52–85)." },
+      { keys: ["LAN", "LANA", "LANSB", "LANA123", "LAN123"], label: "Lana (All Lana Sauv Blanc Blocks 1–3)", valves: [36, 19, 20], note: "Lana spans Valve 36 (LANSB1, R:1–16), Valve 19 (LANSB2, R:17–51), and Valve 20 (LANSB3, R:52–85)." },
+
+      { keys: ["HEL1", "HELEN1", "HELSE1"], label: "Helen 1 — HELSE1 (Semillon BVRC14 • Clone Map R:1–24)", valves: [33], note: "Valve 33 (Row 25, Rows 1–41) irrigates both HELSE1 and HELSE2." },
+      { keys: ["HEL2", "HELEN2", "HELSE2"], label: "Helen 2 — HELSE2 (Semillon BVRC14 • Clone Map R:25–40)", valves: [33], note: "Valve 33 (Row 25, Rows 1–41) irrigates both HELSE1 and HELSE2." },
+      { keys: ["HELSEM", "HELSE", "HELENSEM"], label: "Helen Semillon (HELSE1 & HELSE2 • Clone Map R:1–40)", valves: [33], note: "Valve 33 (Row 25, Rows 1–41), used in Hunter Blocks 9, 20 & 23." },
+      { keys: ["HEL3", "HELEN3", "HELSB3", "HELSB"], label: "Helen 3 — HELSB3 (Sauv Blanc MS • Clone Map R:41–92)", valves: [24, 23], note: "Split across Valve 24 (Row 54, Rows 42–66) and Valve 23 (Row 80, Rows 67–90)." },
+      { keys: ["HEL", "HELEN"], label: "Helen (Semillon 1–2 & Sauv Blanc 3)", valves: [33, 24, 23], note: "Helen includes Semillon (Valve 33, R:1–41) and Sauv Blanc 3 (Valves 24 & 23, R:42–90)." },
+
+      { keys: ["LIL", "LILLY", "LILSB", "LIL1"], label: "Lilly — LILSB (Sauv Blanc MS • Clone Map R:1–56)", valves: [21, 22], note: "Crossover alert: Valve 21 (Row 21, South R:1–42S) sits on the William/Lilly boundary track; Valve 22 (Paddock, North R:1–42N) covers North." },
+
+      { keys: ["FIN1", "FINBAR1", "FINSB1", "FINSB"], label: "Finbar 1 — FINSB1 (Sauv Blanc MS • Clone Map R:1–13)", valves: [29], note: "Valve 29 (Row 21, Rows 1–21) covers FINSB1 and FINRI2." },
+      { keys: ["FIN2", "FINBAR2", "FINRI2"], label: "Finbar 2 — FINRI2 (Riesling GM 239 • Clone Map R:14–21)", valves: [29], note: "Valve 29 (Row 21, Rows 1–21) covers FINSB1 and FINRI2." },
+      { keys: ["FIN3", "FINBAR3", "FINRI3", "FINRI"], label: "Finbar 3 — FINRI3 (Riesling GM 110 • Clone Map R:22–44)", valves: [30], note: "Valve 30 (Row 22, Rows 22–44)." },
+      { keys: ["FINYV", "FINBARYV", "FINBAR2YV", "FIN2YV"], label: "Finbar Young Vine (Extrapolated from Hunter Block 20)", valves: [29], note: "Extrapolated from Hunter Block 20 (YV2 HEL, LEOCHN, FIN), which assigns Finbar to Valve 29 (Row 21, Rows 1–21)." },
+      { keys: ["FIN", "FINBAR"], label: "Finbar (FINSB1 & FINRI2–3 • Hunter Block 3)", valves: [29, 30], note: "Finbar spans Valve 29 (FINSB1/FINRI2, R:1–21) and Valve 30 (FINRI3, R:22–44)." },
+
+      { keys: ["LEO1", "LEOPOLD1", "LEOPN1", "LEOPN"], label: "Leopold 1 — LEOPN1 (Pinot Noir UCD5 • Clone Map R:1–89)", valves: [14, 15, 27], note: "Split between Leopold PN North (Valve 14 R:1–42, Valve 15 R:43–82) and Leopold PN South (Valve 27 R:11–82)." },
+      { keys: ["LEO2", "LEOPOLD2", "LEOCH2"], label: "Leopold 2 — LEOCH2 (Chardonnay Mendoza • Clone Map R:90–114)", valves: [28, 16], note: "Leopold Chardonnay is split North (Valve 28, Paddock, N. Rows 83–132) and South (Valve 16, Row 168, S. Rows 83–171)." },
+      { keys: ["LEO3", "LEOPOLD3", "LEOCH3"], label: "Leopold 3 — LEOCH3 (Chardonnay UCD15 • Clone Map R:115–131)", valves: [28, 16], note: "Leopold Chardonnay is split North (Valve 28, N. Rows 83–132) and South (Valve 16, S. Rows 83–171)." },
+      { keys: ["LEO4", "LEOPOLD4", "LEOCH4"], label: "Leopold 4 — LEOCH4 (Chardonnay B 95 • Clone Map R:132–171)", valves: [16], note: "Valve 16 (Row 168, S. Rows 83–171) covers Leopold Chardonnay South." },
+      { keys: ["LEOCH", "LEOPOLDCH", "LEOCHN", "LEOCHS"], label: "Leopold Chardonnay (LEOCH2–4 • Hunter Block 10)", valves: [28, 16], note: "North = Valve 28 (Paddock, N. Rows 83–132); South = Valve 16 (Row 168, S. Rows 83–171)." },
+      { keys: ["LEO", "LEOPOLD"], label: "Leopold (Pinot Noir 1 & Chardonnay 2–4)", valves: [14, 15, 27, 28, 16], note: "Leopold includes PN North (V14, V15), PN South (V27), CH North (V28), and CH South (V16)." },
+
+      { keys: ["SYL1", "SYLVAIN1", "SYLCH1"], label: "Sylvain 1 — SYLCH1 (Chardonnay B 95 • Clone Map R:16–31)", valves: [25], note: "Valve 25 (Row 46, Rows 17–46) covers SYLCH1 and upper SYLCH2." },
+      { keys: ["SYL2", "SYLVAIN2", "SYLCH2"], label: "Sylvain 2 — SYLCH2 (Chardonnay UCD15 • Clone Map R:32–53)", valves: [25, 26], note: "Split across Valve 25 (Row 46, Rows 17–46) and Valve 26 (Row 47, Rows 47–90)." },
+      { keys: ["SYL3", "SYLVAIN3", "SYLCH3"], label: "Sylvain 3 — SYLCH3 (Chardonnay)", valves: [26], note: "Valve 26 (Row 47, Rows 47–90) covers lower SYLCH2 and SYLCH3." },
+      { keys: ["SYL", "SYLVAIN", "SYLCH"], label: "Sylvain (Chardonnay SYLCH1–3 • Hunter Block 2)", valves: [25, 26], note: "Covers Sylvain via Valve 25 (Row 46, Rows 17–46) and Valve 26 (Row 47, Rows 47–90)." }
     ];
+
+    const BLOCK_CATALOG = {
+      OSI: { name: "Osip", valid: "OSIP1–8 / OSIPN1–8 (Pinot Noir)" },
+      OSIP: { name: "Osip", valid: "OSIP1–8 / OSIPN1–8 (Pinot Noir)" },
+      WIL: { name: "William", valid: "WIL1 / WILSY1 (Syrah), WIL2–4 / WILPG2–4 (Pinot Gris), WIL5 / WILVI5 (Viognier)" },
+      WILLIAM: { name: "William", valid: "WIL1 / WILSY1 (Syrah), WIL2–4 / WILPG2–4 (Pinot Gris), WIL5 / WILVI5 (Viognier)" },
+      LOU: { name: "Louis", valid: "LOU1 / LOUSB1 (SB), LOU2 / LOUPN2 (PN), LOU3 / LOUSB3 (SB), LOU4 / LOUPN4 (PN)" },
+      LOUIS: { name: "Louis", valid: "LOU1 / LOUSB1 (SB), LOU2 / LOUPN2 (PN), LOU3 / LOUSB3 (SB), LOU4 / LOUPN4 (PN)" },
+      SAC: { name: "Sacha", valid: "SAC1–4 / SACPN1–4 (Pinot Noir)" },
+      SACHA: { name: "Sacha", valid: "SAC1–4 / SACPN1–4 (Pinot Noir)" },
+      LAN: { name: "Lana", valid: "LAN1–3 / LANSB1–3 (Sauvignon Blanc)" },
+      LANA: { name: "Lana", valid: "LAN1–3 / LANSB1–3 (Sauvignon Blanc)" },
+      HEL: { name: "Helen", valid: "HEL1–2 / HELSE1–2 (Semillon), HEL3 / HELSB3 (Sauvignon Blanc)" },
+      HELEN: { name: "Helen", valid: "HEL1–2 / HELSE1–2 (Semillon), HEL3 / HELSB3 (Sauvignon Blanc)" },
+      LIL: { name: "Lilly", valid: "LIL / LILSB (Sauvignon Blanc)" },
+      LILLY: { name: "Lilly", valid: "LIL / LILSB (Sauvignon Blanc)" },
+      FIN: { name: "Finbar", valid: "FIN1 / FINSB1 (SB), FIN2–3 / FINRI2–3 (Riesling), FIN YV" },
+      FINBAR: { name: "Finbar", valid: "FIN1 / FINSB1 (SB), FIN2–3 / FINRI2–3 (Riesling), FIN YV" },
+      LEO: { name: "Leopold", valid: "LEO1 / LEOPN1 (Pinot Noir), LEO2–4 / LEOCH2–4 (Chardonnay)" },
+      LEOPOLD: { name: "Leopold", valid: "LEO1 / LEOPN1 (Pinot Noir), LEO2–4 / LEOCH2–4 (Chardonnay)" },
+      SYL: { name: "Sylvain", valid: "SYL1–3 / SYLCH1–3 (Chardonnay)" },
+      SYLVAIN: { name: "Sylvain", valid: "SYL1–3 / SYLCH1–3 (Chardonnay)" }
+    };
 
     const valveMap = Object.fromEntries(DATA.valves.map(v => [v.valve, v]));
     const hunterMap = Object.fromEntries(DATA.hunterBlocks.map(h => [h.id, h]));
 
     let currentMode = "hunter";
-    let currentHunterId = 13;
-    let currentValveNum = 29;
+    let currentHunterId = 1;
+    let currentValveNum = 1;
 
     function initControls() {
       const selHunter = document.getElementById("select-hunter");
@@ -661,7 +622,6 @@
       const clean = normalizeCode(rawToken);
       const compact = clean.replace(/\s+/g, "");
 
-      // Direct valve match like "V29" or "VALVE 29"
       const valveMatch = clean.match(/^(?:V|VALVE|STATION|STN)\s*(\d{1,2})$/);
       if (valveMatch) {
         const vNum = Number(valveMatch[1]);
@@ -670,13 +630,13 @@
             raw: rawToken,
             title: `Direct Valve ${vNum}`,
             valves: [vNum],
-            note: `Direct match to Valve ${vNum} (${valveMap[vNum].block}).`
+            note: `Direct match to Valve ${vNum} (${valveMap[vNum].block}).`,
+            isError: false
           };
         }
       }
 
-      // Exact or compact alias rule match
-      const exactRule = SHORTHAND_RULES.find(r =>
+      const exactRule = BLOCK_TRANSLATIONS.find(r =>
         r.keys.includes(compact) || r.keys.includes(clean)
       );
       if (exactRule) {
@@ -684,33 +644,30 @@
           raw: rawToken,
           title: exactRule.label,
           valves: exactRule.valves,
-          note: exactRule.note
+          note: exactRule.note,
+          isError: false
         };
       }
 
-      // Prefix / pattern match for block + number (e.g. "LAN 2 3" or "LOU 1 3")
-      const prefixMatches = SHORTHAND_RULES.filter(r =>
-        r.keys.some(k => k.length >= 3 && (compact.startsWith(k) || k.startsWith(compact)))
-      );
-      if (prefixMatches.length > 0) {
-        const best = prefixMatches[0];
-        const mergedValves = [];
-        prefixMatches.forEach(m => m.valves.forEach(vn => {
-          if (!mergedValves.includes(vn)) mergedValves.push(vn);
-        }));
+      const blockPrefixMatch = compact.match(/^(OSIP|OSI|WILLIAM|WIL|LOUIS|LOU|SACHA|SAC|LANA|LAN|HELEN|HEL|LILLY|LIL|FINBAR|FIN|LEOPOLD|LEO|SYLVAIN|SYL)([A-Z0-9]+)$/);
+      if (blockPrefixMatch) {
+        const prefix = blockPrefixMatch[1];
+        const info = BLOCK_CATALOG[prefix];
         return {
           raw: rawToken,
-          title: prefixMatches.length === 1 ? best.label : `Possible Matches (${prefixMatches.map(m => m.label).join(" / ")})`,
-          valves: mergedValves,
-          note: prefixMatches.map(m => m.note).filter(Boolean).join(" ")
+          title: `No "${rawToken}" block in ${info.name}`,
+          valves: [],
+          note: `Valid ${info.name} blocks on the Clone Map: ${info.valid}.`,
+          isError: true
         };
       }
 
       return {
         raw: rawToken,
-        title: `No exact match for "${rawToken}"`,
+        title: `Unrecognized block code "${rawToken}"`,
         valves: [],
-        note: "Try codes like LOU1, LOU3, OSI7, WILVI, FIN YV, LAN1, LAN2, or V29."
+        note: "Try vineyard blocks like LOU1, LOUSB1, OSI7, OSIPN3, WIL4, WILVI, FIN YV, LAN2, or V29.",
+        isError: true
       };
     }
 
@@ -740,7 +697,7 @@
           <div class="shorthand-result-header">
             <div class="shorthand-token">"${res.raw}" → Valves: ${res.valves.length ? res.valves.join(", ") : "None"}</div>
             <div class="shorthand-interp">${res.title}</div>
-            ${res.note ? `<div class="note-box">${res.note}</div>` : ""}
+            ${res.note ? `<div class="${res.isError ? "err-box" : "note-box"}">${res.note}</div>` : ""}
           </div>
           ${cards}
         `;
@@ -748,7 +705,7 @@
     }
 
     initControls();
-    renderHunter(13);
+    renderHunter(1);
   </script>
 </body>
 </html>
