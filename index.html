@@ -728,7 +728,7 @@
         .map(s => s.trim())
         .filter(Boolean);
 
-      outEl.innerHTML = tokens.map(tok => {A
+      outEl.innerHTML = tokens.map(tok => {
         const res = decodeToken(tok);
         const cards = res.valves
           .map(vn => valveMap[vn])
